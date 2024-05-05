@@ -1,4 +1,5 @@
 import random
+import time
 
 import telebot
 from telebot.types import ReplyKeyboardRemove
@@ -6,6 +7,7 @@ from telebot.types import ReplyKeyboardRemove
 from config import TOKEN
 
 bot = telebot.TeleBot(TOKEN)
+MAX_TIME = 7
 
 q_a = {
     'Как перейти в другую директорию?': {
@@ -52,8 +54,63 @@ q_a = {
         'man': 'https://andreyex.ru/operacionnaya-sistema-linux/komanda-whoami-v-linux/',
         'whatis': 'https://andreyex.ru/operacionnaya-sistema-linux/komanda-whoami-v-linux/',
         'whoami': True
-    }
+    },
 
+    'Как вывести содержимое файла на экран?': {
+        'man': 'https://losst.pro/komanda-cat-linux#ispolzovanie-cat-v-linux',
+        'whatis': 'https://losst.pro/komanda-cat-linux#ispolzovanie-cat-v-linux',
+        'cat': True
+    },
+    'Как постранично посмотреть содержимое файла?': {
+        'man': 'https://losst.pro/komanda-more-v-linux',
+        'more': True,
+        'cat': 'https://losst.pro/komanda-more-v-linux'
+    },
+    'Как сменить права доступа?': {
+        'mod': 'https://losst.pro/komanda-chmod-linux',
+        'chmod': True,
+        'chmd': 'https://losst.pro/komanda-chmod-linux'
+    },
+    'Как создать архив с расширением .tar?': {
+        'tar cf': True,
+        'tar xf ': 'https://losst.pro/komanda-tar-v-linux',
+        'tar czf': 'https://losst.pro/komanda-tar-v-linux'
+    },
+    'Как распаковать архив с расширением .tar?': {
+        'tar cf': 'https://losst.pro/komanda-tar-v-linux',
+        'tar xf ': True,
+        'tar czf': 'https://losst.pro/komanda-tar-v-linux'
+    },
+    'Как создать архив с расширением .gzip?': {
+        'tar cf': 'https://losst.pro/komanda-tar-v-linux',
+        'tar xf ': 'https://losst.pro/komanda-tar-v-linux',
+        'tar czf': True
+    },
+    'Как распаковать архив с расширением .gzip?': {
+        'tar cf': 'https://losst.pro/komanda-tar-v-linux',
+        'tar xzf ': True,
+        'tar czf': 'https://losst.pro/komanda-tar-v-linux'
+    },
+    'Как убить процесс с id pid?': {
+        'kill pid': True,
+        'kill fish': 'https://losst.pro/kak-ubit-protsess-linux',
+        'kill pig': 'https://losst.pro/kak-ubit-protsess-linux'
+    },
+    'Как проверить хост?': {
+        'ssh host': 'https://losst.pro/komanda-ping-v-linux',
+        'more host': 'https://losst.pro/komanda-ping-v-linux',
+        'ping host': True
+    },
+    'Как узнать использование памяти и swap?': {
+        'top': 'https://losst.pro/ispolzovanie-operativnoj-pamyati-linux',
+        'free': True,
+        'ps': 'https://losst.pro/ispolzovanie-operativnoj-pamyati-linux'
+    },
+    'Как подключиться к хосту(host) как пользователь(user)?': {
+        'ssh user@host': True,
+        'ping user@host': 'https://losst.pro/kak-polzovatsya-ssh',
+        'wget user@host': 'https://losst.pro/kak-polzovatsya-ssh'
+    }
 }
 
 user_data = {}
@@ -76,8 +133,9 @@ def answer(message):
             if user_data[chat_id][i] == None:
 
                 if message.text not in q_a[i]:
+                    keyboard = get_keyboard(i)
                     bot.send_message(chat_id,
-                                     f'❌ Неверный формат ответа')
+                                     f'❌ Неверный формат ответа', reply_markup=keyboard)
                     bot.register_next_step_handler(message, answer)
                     return
                 else:
@@ -86,6 +144,18 @@ def answer(message):
                     if isinstance(ans, str):
                         bot.send_message(chat_id,
                                          f'❌ Ответ неверный, посетите:\n{ans}')
+                    else:
+                        if time.time() - user_data[chat_id]['time_start'] > MAX_TIME:
+                            bot.send_message(chat_id,
+                                             f'❌ К сожалению, вы не успели ответить на вопрос')
+                            for j in q_a[i]:
+                                if q_a[i][j] is not True:
+                                    user_data[chat_id][i] = j
+
+                        else:
+                            bot.send_message(chat_id,
+                                             f'✅ Ответ верный')
+
 
     if len(user_data[chat_id]) == len(q_a) or user_data[chat_id]['counter'] == 5:
         get_stats(message)
@@ -97,23 +167,29 @@ def answer(message):
             break
 
     user_data[chat_id]['counter'] += 1
+    user_data[chat_id]['time_start'] = time.time()
 
+
+    keyboard = get_keyboard(random_question)
+
+    user_data[chat_id][random_question] = None
+    bot.send_message(chat_id, random_question, reply_markup=keyboard)
+    bot.register_next_step_handler(message, answer)
+
+def get_keyboard(random_question):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = []
     for i in q_a[random_question]:
         buttons.append(telebot.types.KeyboardButton(text=i))
     keyboard.add(*buttons)
-
-    user_data[chat_id][random_question] = None
-    bot.send_message(chat_id, random_question, reply_markup=keyboard)
-    bot.register_next_step_handler(message, answer)
+    return keyboard
 
 
 def get_stats(message):
     chat_id = message.chat.id
     correct_answer = 0
     for i in user_data[chat_id]:
-        if i != 'counter' and isinstance(q_a[i][user_data[chat_id][i]], bool):
+        if i not in ('counter', 'time_start') and isinstance(q_a[i][user_data[chat_id][i]], bool):
             correct_answer += 1
     bot.send_message(chat_id,
                      f'Отлично, количество верных ответов: {correct_answer}'
@@ -128,7 +204,10 @@ def welcome(message):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = telebot.types.KeyboardButton(text="Начать тестирование")
     keyboard.add(button1)
-    bot.send_message(chat_id, 'Привет! Добро пожаловать! Тут кнопки',
+    bot.send_message(chat_id, 'Привет! Добро пожаловать! Данный бот поможет проверить знание команд для работы в терминале Linux. '
+                              'Тестирования состоит из пяти вопросов, c тремя вариантами ответов. На каждый вопрос дается 7 секунд. '
+                              'В конце будет выведен результат тестирования. '
+                              'Для начала прохождения, необходимо нажать на кнопку "Начать тестирование". Удачи!',
                      reply_markup=keyboard)
 
 
@@ -136,5 +215,3 @@ if __name__ == '__main__':
     print('Бот запущен!')
     bot.infinity_polling()
 
-
-#поставить ограничение времени на вопросы
