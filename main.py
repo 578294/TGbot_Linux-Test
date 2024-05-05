@@ -1,10 +1,12 @@
 import random
 import time
-
+from loguru import logger
 import telebot
 from telebot.types import ReplyKeyboardRemove
-
 from config import TOKEN
+
+logger.add('debug.log', format='{time}. {level}: {message}', level='ERROR',
+           rotation='1 week', compression='zip')
 
 bot = telebot.TeleBot(TOKEN)
 MAX_TIME = 7
@@ -118,6 +120,7 @@ user_data = {}
 
 @bot.message_handler(
     func=lambda message: message.text == 'Начать тестирование')
+@logger.catch
 def random_start(message):
     chat_id = message.chat.id
     user_data[chat_id] = {}
@@ -125,6 +128,7 @@ def random_start(message):
     answer(message)
 
 
+@logger.catch
 def answer(message):
     chat_id = message.chat.id
 
@@ -156,7 +160,6 @@ def answer(message):
                             bot.send_message(chat_id,
                                              f'✅ Ответ верный')
 
-
     if len(user_data[chat_id]) == len(q_a) or user_data[chat_id]['counter'] == 5:
         get_stats(message)
         return
@@ -169,13 +172,14 @@ def answer(message):
     user_data[chat_id]['counter'] += 1
     user_data[chat_id]['time_start'] = time.time()
 
-
     keyboard = get_keyboard(random_question)
 
     user_data[chat_id][random_question] = None
     bot.send_message(chat_id, random_question, reply_markup=keyboard)
     bot.register_next_step_handler(message, answer)
 
+
+@logger.catch
 def get_keyboard(random_question):
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = []
@@ -185,6 +189,7 @@ def get_keyboard(random_question):
     return keyboard
 
 
+@logger.catch
 def get_stats(message):
     chat_id = message.chat.id
     correct_answer = 0
@@ -199,19 +204,20 @@ def get_stats(message):
 
 
 @bot.message_handler(commands=['start'])
+@logger.catch
 def welcome(message):
     chat_id = message.chat.id
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = telebot.types.KeyboardButton(text="Начать тестирование")
     keyboard.add(button1)
-    bot.send_message(chat_id, 'Привет! Добро пожаловать! Данный бот поможет проверить знание команд для работы в терминале Linux. '
-                              'Тестирования состоит из пяти вопросов, c тремя вариантами ответов. На каждый вопрос дается 7 секунд. '
-                              'В конце будет выведен результат тестирования. '
-                              'Для начала прохождения, необходимо нажать на кнопку "Начать тестирование". Удачи!',
+    bot.send_message(chat_id,
+                     'Привет! Добро пожаловать! Данный бот поможет проверить знание команд для работы в терминале Linux. '
+                     'Тестирования состоит из пяти вопросов, c тремя вариантами ответов. На каждый вопрос дается 7 секунд. '
+                     'В конце будет выведен результат тестирования. '
+                     'Для начала прохождения, необходимо нажать на кнопку "Начать тестирование". Удачи!',
                      reply_markup=keyboard)
 
 
 if __name__ == '__main__':
     print('Бот запущен!')
     bot.infinity_polling()
-
