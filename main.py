@@ -75,22 +75,22 @@ q_a = {
     },
     'Как создать архив с расширением .tar?': {
         'tar cf': True,
-        'tar xf ': 'https://losst.pro/komanda-tar-v-linux',
+        'tar xf': 'https://losst.pro/komanda-tar-v-linux',
         'tar czf': 'https://losst.pro/komanda-tar-v-linux'
     },
     'Как распаковать архив с расширением .tar?': {
         'tar cf': 'https://losst.pro/komanda-tar-v-linux',
-        'tar xf ': True,
+        'tar xf': True,
         'tar czf': 'https://losst.pro/komanda-tar-v-linux'
     },
     'Как создать архив с расширением .gzip?': {
         'tar cf': 'https://losst.pro/komanda-tar-v-linux',
-        'tar xf ': 'https://losst.pro/komanda-tar-v-linux',
+        'tar xf': 'https://losst.pro/komanda-tar-v-linux',
         'tar czf': True
     },
     'Как распаковать архив с расширением .gzip?': {
         'tar cf': 'https://losst.pro/komanda-tar-v-linux',
-        'tar xzf ': True,
+        'tar xzf': True,
         'tar czf': 'https://losst.pro/komanda-tar-v-linux'
     },
     'Как убить процесс с id pid?': {
