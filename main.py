@@ -197,7 +197,7 @@ def get_stats(message):
         if i not in ('counter', 'time_start') and isinstance(q_a[i][user_data[chat_id][i]], bool):
             correct_answer += 1
     bot.send_message(chat_id,
-                     f'Отлично, количество верных ответов: {correct_answer}'
+                     f'Вы закончили тестирование. Количество верных ответов: {correct_answer}'
                      f'\nЧтобы пройти тест заново нажмите /start',
                      reply_markup=telebot.types.ReplyKeyboardRemove()
                      )
@@ -212,7 +212,7 @@ def welcome(message):
     keyboard.add(button1)
     bot.send_message(chat_id,
                      'Привет! Добро пожаловать! Данный бот поможет проверить знание команд для работы в терминале Linux. '
-                     'Тестирования состоит из пяти вопросов, c тремя вариантами ответов. На каждый вопрос дается 7 секунд. '
+                     'Тестирование состоит из пяти вопросов, c тремя вариантами ответов. На каждый вопрос дается 7 секунд. '
                      'В конце будет выведен результат тестирования. '
                      'Для начала прохождения, необходимо нажать на кнопку "Начать тестирование". Удачи!',
                      reply_markup=keyboard)
