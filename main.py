@@ -9,7 +9,7 @@ logger.add('debug.log', format='{time}. {level}: {message}', level='ERROR',
            rotation='1 week', compression='zip')
 
 bot = telebot.TeleBot(TOKEN)
-MAX_TIME = 7
+MAX_TIME = 11
 
 q_a = {
     'Как перейти в другую директорию?': {
