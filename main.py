@@ -28,13 +28,13 @@ q_a = {
         'pwd': True,
     },
     'Как вывести ваши текущие активные процессы?': {
-        'top': 'https://losst.pro/komanda-ps-v-linux',
+        'grep': 'https://losst.pro/komanda-ps-v-linux',
         'ps': True,
         'fg': 'https://losst.pro/komanda-ps-v-linux'
     },
     'Как показать все запущенный процессы?': {
         'top': True,
-        'ps': 'https://losst.pro/komanda-top-v-linux',
+        'grep': 'https://losst.pro/komanda-top-v-linux',
         'fg': 'https://losst.pro/komanda-top-v-linux'
     },
     'Как посмотреть список файлов и каталогов?': {
