@@ -1,16 +1,23 @@
+"""
+Данный файл представляет Tg-бота https://t.me/Study_Linux_bot, который помогает
+проверить знание командной строки Linux.
+"""
+
 import random
 import time
 from loguru import logger
 import telebot
-from telebot.types import ReplyKeyboardRemove
 from config import TOKEN
 
+# Выполняется логирование в файл debug.log в формате:
+# время, уровень логирования, сообщение, частота записи нового файла, формат директории хранения файла
 logger.add('debug.log', format='{time}. {level}: {message}', level='ERROR',
            rotation='1 week', compression='zip')
 
 bot = telebot.TeleBot(TOKEN)
-MAX_TIME = 11
+MAX_TIME = 11  # Задается время ответа на вопрос
 
+# Словарь q_a содержит вопросы и варианты ответов
 q_a = {
     'Как перейти в другую директорию?': {
         'cd dir': True,
@@ -115,6 +122,7 @@ q_a = {
     }
 }
 
+# user_data - словарь в котором находятся промежуточные пользовательские данные
 user_data = {}
 
 
@@ -122,6 +130,11 @@ user_data = {}
     func=lambda message: message.text == 'Начать тестирование')
 @logger.catch
 def random_start(message):
+    """
+    Выбирает рандомный вопрос.
+
+    Выбирает рандомный вопрос; чтобы не было повторений, счетчик равен 0
+    """
     chat_id = message.chat.id
     user_data[chat_id] = {}
     user_data[chat_id]['counter'] = 0
@@ -129,7 +142,21 @@ def random_start(message):
 
 
 @logger.catch
-def answer(message):
+def answer(message: telebot.types.Message):
+    """
+    Обрабатывает ответы пользователя.
+
+    Обрабатывает ответы пользователя. При вызове сообщения 'Начать тестирование',
+    в цикле for происходит итерация в словарь user_data: если пользователь дает неверный ответ,
+    то выводится сообщение "Неверный формат ответа" с рекомендацией по посещению сайта с теорией;
+    если, пользователь не укладывается в лимит по времени, то выводится сообщение
+    "К сожалению, вы не успели ответить на вопрос" и ответ не засчитывается;
+    если пользователь дает верный ответ, то выводится сообщение "Ответ верный"
+
+    Args:
+        message: telebot.types.Message
+    """
+
     chat_id = message.chat.id
 
     if message.text not in q_a.keys() and message.text != 'Начать тестирование':
@@ -180,7 +207,18 @@ def answer(message):
 
 
 @logger.catch
-def get_keyboard(random_question):
+def get_keyboard(random_question: str):
+    """
+    Вызов клавиатуры.
+
+    Вызов клавиатуры для формирования вариантов ответа на вопросы.
+
+    Args:
+        random_question: str
+
+    Returns:
+        keyboard: telebot.types.ReplyKeyboardMarkup
+    """
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = []
     for i in q_a[random_question]:
@@ -190,7 +228,15 @@ def get_keyboard(random_question):
 
 
 @logger.catch
-def get_stats(message):
+def get_stats(message: telebot.types.Message):
+    """
+    Вывод результатов тестирования.
+
+    Выводится результат тестирования с указанием верных ответов.
+
+    Args:
+        message: telebot.types.Message
+    """
     chat_id = message.chat.id
     correct_answer = 0
     for i in user_data[chat_id]:
@@ -206,6 +252,14 @@ def get_stats(message):
 @bot.message_handler(commands=['start'])
 @logger.catch
 def welcome(message):
+    """
+    Приветственное сообщение.
+
+    Приветственное сообщение с описанием работы бота.
+
+    Args:
+        message: telebot.types.Message
+    """
     chat_id = message.chat.id
     keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1 = telebot.types.KeyboardButton(text="Начать тестирование")
